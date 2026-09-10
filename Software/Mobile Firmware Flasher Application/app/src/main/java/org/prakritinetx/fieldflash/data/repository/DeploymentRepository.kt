@@ -36,44 +36,47 @@ class DeploymentRepository(private val context: Context) {
     suspend fun recordAndSyncLocation(
         payload: DeploymentLocationPayload
     ): Resource<String> = withContext(Dispatchers.IO) {
-        // 1. Always persist to local Room DB first (Offline-first architecture)
         val entity = QueuedLocationEntity(
             nodeId = payload.nodeId,
             latitude = payload.latitude,
             longitude = payload.longitude,
             altitude = payload.altitude,
             accuracy = payload.accuracy,
+            satellitesUsed = payload.satellitesUsed,
+            gnssConstellation = payload.gnssConstellation,
+            hdop = payload.hdop,
             timestamp = payload.timestamp,
             firmwareVersion = payload.firmwareVersion,
             chipType = payload.chipType,
+            catchmentBasin = payload.catchmentBasin,
+            mountingHeightMeters = payload.mountingHeightMeters,
             writtenToBoard = payload.writtenToBoard,
+            batteryVoltageMv = payload.batteryVoltageMv,
             technicianNotes = payload.technicianNotes,
             syncStatus = "PENDING"
         )
         val localId = locationDao.insertLocation(entity)
 
-        // 2. Check if currently online
         if (isOnline()) {
             try {
                 val response = apiClient.locationApi.registerDeploymentLocation(payload.nodeId, payload)
                 if (response.isSuccessful) {
                     locationDao.markAsSynced(localId)
-                    return@withContext Resource.Success("Deployment location uploaded and registered with cloud backend.")
+                    return@withContext Resource.Success("Deployment location confirmed and registered with cloud backend.")
                 } else {
                     val err = "HTTP ${response.code()}: ${response.message()}"
                     locationDao.markAsFailed(localId, err, System.currentTimeMillis())
                     scheduleAutoSyncWork()
-                    return@withContext Resource.Success("Uploaded failed ($err). Saved to offline queue; will auto-sync when online.")
+                    return@withContext Resource.Success("Cloud upload failed ($err). Saved to offline Room database; will auto-sync when online.")
                 }
             } catch (e: Exception) {
                 locationDao.markAsFailed(localId, e.message ?: "Network error", System.currentTimeMillis())
                 scheduleAutoSyncWork()
-                return@withContext Resource.Success("Remote site offline. Deployment saved to offline queue; will auto-sync when connection returns.")
+                return@withContext Resource.Success("Remote field site offline. Deployment saved to offline Room queue; will auto-sync once connected.")
             }
         } else {
-            // Site is offline
             scheduleAutoSyncWork()
-            return@withContext Resource.Success("Remote site offline. Deployment saved to local offline queue; will automatically sync once phone reconnects to internet.")
+            return@withContext Resource.Success("Remote field site offline. Deployment stored in secure offline Room queue; auto-sync enabled.")
         }
     }
 
@@ -96,7 +99,7 @@ class DeploymentRepository(private val context: Context) {
 
     suspend fun syncAllNow(): Resource<Int> = withContext(Dispatchers.IO) {
         if (!isOnline()) {
-            return@withContext Resource.Error("Device is still offline. Please connect to Wi-Fi or cellular network to sync.")
+            return@withContext Resource.Error("Device is currently offline. Connect to cellular or Wi-Fi to synchronize.")
         }
         val pending = locationDao.getPendingLocations()
         if (pending.isEmpty()) {
@@ -125,4 +128,3 @@ class DeploymentRepository(private val context: Context) {
         locationDao.clearSynced()
     }
 }
-

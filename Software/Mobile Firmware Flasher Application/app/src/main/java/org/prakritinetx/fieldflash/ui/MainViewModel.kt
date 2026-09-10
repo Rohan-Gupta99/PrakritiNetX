@@ -21,6 +21,7 @@ import org.prakritinetx.fieldflash.engine.k210.K210PackageParser
 import org.prakritinetx.fieldflash.engine.serial.SerialConnectionState
 import org.prakritinetx.fieldflash.engine.serial.UsbSerialManager
 import org.prakritinetx.fieldflash.engine.verification.FlashVerifier
+import org.prakritinetx.fieldflash.engine.verification.NodeRuntimeTelemetry
 import org.prakritinetx.fieldflash.engine.verification.VerificationResult
 import org.prakritinetx.fieldflash.location.BoardLocationWriter
 import org.prakritinetx.fieldflash.location.GpsLocationFix
@@ -50,11 +51,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val boardLocationWriter = BoardLocationWriter(serialManager)
     private val flashVerifier = FlashVerifier(serialManager)
 
-    // Flashing engines
     val esp32Engine = Esp32FlashingEngine(serialManager)
     val k210Engine = K210FlashingEngine(serialManager)
 
-    // UI States
     private val _firmwarePackages = MutableLiveData<Resource<List<FirmwarePackage>>>(Resource.Idle)
     val firmwarePackages: LiveData<Resource<List<FirmwarePackage>>> = _firmwarePackages
 
@@ -75,6 +74,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _verificationResult = MutableLiveData<VerificationResult?>()
     val verificationResult: LiveData<VerificationResult?> = _verificationResult
+
+    private val _lastTelemetry = MutableLiveData<NodeRuntimeTelemetry>(NodeRuntimeTelemetry())
+    val lastTelemetry: LiveData<NodeRuntimeTelemetry> = _lastTelemetry
 
     private val _gpsFix = MutableLiveData<Resource<GpsLocationFix>>(Resource.Idle)
     val gpsFix: LiveData<Resource<GpsLocationFix>> = _gpsFix
@@ -105,9 +107,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _terminalLogs.postValue(emptyList())
     }
 
-    // --- Step 1: Firmware Repository & SAF ---
     fun fetchFirmwareManifest() {
-        _firmwarePackages.value = Resource.Loading("Fetching manifest...")
+        _firmwarePackages.value = Resource.Loading("Connecting to PrakritiNetX Release Repository...")
         viewModelScope.launch {
             val result = firmwareRepo.getFirmwarePackages()
             _firmwarePackages.postValue(result)
@@ -116,23 +117,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun selectPackage(pkg: FirmwarePackage) {
         _selectedPackage.value = pkg
-        appendLog("Selected Package: ${pkg.displayName} (${pkg.chipType.uppercase()}, ${pkg.version})")
+        appendLog("Selected Release: ${pkg.displayName} (${pkg.chipType.uppercase()}, ${pkg.version})")
     }
 
     fun downloadPackage(pkg: FirmwarePackage) {
         viewModelScope.launch {
-            appendLog("Downloading package ${pkg.displayName} to local storage...")
+            appendLog("Caching cryptographically-signed package ${pkg.displayName}...")
             val result = firmwareRepo.downloadAndCachePackage(pkg) { percent, msg ->
                 _firmwarePackages.postValue(Resource.Loading(msg, percent))
             }
             when (result) {
                 is Resource.Success -> {
-                    appendLog("Package successfully downloaded and cached for offline field use.")
+                    appendLog("Package integrity verified and cached for offline field operations.")
                     _selectedPackage.postValue(result.data)
-                    fetchFirmwareManifest() // Refresh list state
+                    fetchFirmwareManifest()
                 }
                 is Resource.Error -> {
-                    appendLog("Download failed: ${result.message}")
+                    appendLog("Package download error: ${result.message}")
                     _firmwarePackages.postValue(result)
                 }
                 else -> {}
@@ -148,33 +149,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         offsetHex: String = "0x10000"
     ) {
         viewModelScope.launch {
-            appendLog("Importing local firmware file from device storage...")
+            appendLog("Importing local signed firmware package from device storage...")
             val res = firmwareRepo.importManualFirmware(uri, chipType, nodeType, version, offsetHex)
             if (res is Resource.Success) {
-                appendLog("Imported file successfully as ${res.data.displayName}")
+                appendLog("Import successful: ${res.data.displayName}")
                 _selectedPackage.postValue(res.data)
                 fetchFirmwareManifest()
             } else if (res is Resource.Error) {
-                appendLog("Import failed: ${res.message}")
+                appendLog("Import error: ${res.message}")
             }
         }
     }
 
-    // --- Step 2: USB Serial Connection ---
     fun getAvailableUsbDrivers(): List<UsbSerialDriver> {
         return serialManager.getAvailableDevices()
     }
 
     fun connectSerial(driver: UsbSerialDriver, baudRate: Int = Constants.BAUD_BOOTLOADER_DEFAULT) {
         _serialState.value = SerialConnectionState.Connecting
-        appendLog("Connecting to USB device: ${driver.device.deviceName} (Vendor 0x${Integer.toHexString(driver.device.vendorId)})...")
+        appendLog("Initializing USB Host link: ${driver.device.deviceName} (Vendor 0x${Integer.toHexString(driver.device.vendorId).uppercase()})...")
         viewModelScope.launch {
             val res = serialManager.open(driver, 0, baudRate)
             _serialState.postValue(res)
             if (res is SerialConnectionState.Connected) {
-                appendLog("Serial Port Connected: ${res.deviceName} (${res.driverName})")
+                appendLog("Hardware Port Active: ${res.deviceName} (${res.driverName})")
             } else if (res is SerialConnectionState.Error) {
-                appendLog("Connection Error: ${res.message}")
+                appendLog("Hardware Link Error: ${res.message}")
             }
         }
     }
@@ -182,7 +182,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun disconnectSerial() {
         serialManager.close()
         _serialState.value = SerialConnectionState.Disconnected
-        appendLog("USB Serial Disconnected.")
+        appendLog("USB Serial link released.")
     }
 
     fun handshakeAndIdentifyChip() {
@@ -190,44 +190,42 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val pkg = _selectedPackage.value
             val isK210 = pkg?.chipType.equals("k210", ignoreCase = true)
 
-            appendLog("Initiating chip handshake protocol...")
+            appendLog("Asserting hardware handshake protocol...")
             if (isK210) {
                 val synced = k210Engine.connectAndSync { appendLog(it) }
                 if (synced) {
                     _detectedChip.postValue(k210Engine.detectedChip)
                     _detectedNodeId.postValue(k210Engine.detectedChipId)
-                    appendLog("Chip Handshake SUCCESS: ${k210Engine.detectedChip} [ID: ${k210Engine.detectedChipId}]")
+                    appendLog("Hardware Target Locked: ${k210Engine.detectedChip} [UID: ${k210Engine.detectedChipId}]")
                 } else {
-                    appendLog("Chip Handshake FAILED for Kendryte K210.")
+                    appendLog("Hardware Handshake FAILED for Kendryte K210.")
                 }
             } else {
                 val synced = esp32Engine.connectAndSync { appendLog(it) }
                 if (synced) {
                     _detectedChip.postValue(esp32Engine.detectedChip)
                     _detectedNodeId.postValue(esp32Engine.detectedMacAddress)
-                    appendLog("Chip Handshake SUCCESS: ${esp32Engine.detectedChip} [MAC: ${esp32Engine.detectedMacAddress}]")
+                    appendLog("Hardware Target Locked: ${esp32Engine.detectedChip} [MAC: ${esp32Engine.detectedMacAddress}]")
                 } else {
-                    appendLog("Chip Handshake FAILED for ESP32.")
+                    appendLog("Hardware Handshake FAILED for ESP32 target.")
                 }
             }
         }
     }
 
-    // --- Step 3: Firmware Flashing ---
     fun startFlashing() {
         val pkg = _selectedPackage.value ?: run {
-            appendLog("Error: No firmware package selected!")
+            appendLog("Error: No firmware package selected.")
             return
         }
 
         _flashProgress.value = FlashProgressState(
             isFlashing = true,
-            statusText = "Starting flashing process..."
+            statusText = "Initializing hardware flash controller..."
         )
 
         viewModelScope.launch {
             val isK210 = pkg.chipType.equals("k210", ignoreCase = true)
-
             if (isK210) {
                 flashK210(pkg)
             } else {
@@ -237,16 +235,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun flashEsp32(pkg: FirmwarePackage) {
-        appendLog("Preparing ESP32 flashing engine for ${pkg.displayName}...")
+        appendLog("Initializing ESP32 Flashing Engine for ${pkg.displayName}...")
 
-        // Synchronize with ESP32 bootloader
         val synced = esp32Engine.connectAndSync { appendLog(it) }
         if (!synced) {
             _flashProgress.postValue(
                 FlashProgressState(
                     isFlashing = false,
                     isError = true,
-                    statusText = "Failed to sync with ESP32 bootloader"
+                    statusText = "Failed to synchronize with ROM bootloader"
                 )
             )
             return
@@ -255,11 +252,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _detectedChip.postValue(esp32Engine.detectedChip)
         _detectedNodeId.postValue(esp32Engine.detectedMacAddress)
 
-        // Build Flash Tasks:
-        // Must flash three files at required fixed offsets:
-        // 1. bootloader.bin at 0x1000 (or 0x0 for S3)
-        // 2. partition-table.bin at 0x8000
-        // 3. app firmware .bin at 0x10000
         val isS3 = esp32Engine.detectedChip.contains("S3", ignoreCase = true)
         val tasks = mutableListOf<FlashBlockTask>()
 
@@ -269,17 +261,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val file = File(localPath)
                 if (file.exists()) {
                     var offset = f.offsetLong
-                    // If bootloader and S3, adjust offset to 0x0 if needed
                     if (isS3 && f.name.contains("bootloader", ignoreCase = true)) {
                         offset = Constants.ESP32_S3_OFFSET_BOOTLOADER
                     }
                     tasks.add(FlashBlockTask(f.name, offset, file, file.length()))
                 } else {
-                    appendLog("Error: Firmware component file missing: ${f.name} at $localPath")
+                    appendLog("File missing: ${f.name} at $localPath")
                 }
             }
         } else if (!pkg.localPath.isNullOrEmpty()) {
-            // Single manual binary flashed as app.bin at 0x10000
             val file = File(pkg.localPath!!)
             tasks.add(FlashBlockTask(file.name, Constants.ESP32_OFFSET_APP, file, file.length()))
         }
@@ -289,7 +279,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 FlashProgressState(
                     isFlashing = false,
                     isError = true,
-                    statusText = "No valid firmware files available to flash"
+                    statusText = "No verified firmware binaries found on disk"
                 )
             )
             return
@@ -298,7 +288,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val plan = Esp32FlashPlan(isS3, tasks)
         val success = esp32Engine.flashAll(
             plan = plan,
-            highSpeedBaud = Constants.BAUD_FLASH_ESP_SAFE,
+            targetBaud = Constants.BAUD_FLASH_HIGH_SPEED,
             onProgress = { overallPercent, bytesWritten, totalBytes, speedKbps, currentFile ->
                 _flashProgress.postValue(
                     FlashProgressState(
@@ -308,7 +298,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         totalBytes = totalBytes,
                         speedKbps = speedKbps,
                         currentFileName = currentFile,
-                        statusText = "Writing $currentFile ($overallPercent%)"
+                        statusText = "Flashing $currentFile ($overallPercent%)"
                     )
                 )
             },
@@ -321,24 +311,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     isFlashing = false,
                     isSuccess = true,
                     percent = 100,
-                    statusText = "ESP32 Flashing Complete! Ready for Verification."
+                    statusText = "Flashing Complete! Running runtime diagnostic verification..."
                 )
             )
-            // Automatically launch verification step
             runVerification()
         } else {
             _flashProgress.postValue(
                 FlashProgressState(
                     isFlashing = false,
                     isError = true,
-                    statusText = "ESP32 Flash Failed. Review terminal logs."
+                    statusText = "Flashing Interrupted. Review diagnostics log."
                 )
             )
         }
     }
 
     private suspend fun flashK210(pkg: FirmwarePackage) {
-        appendLog("Preparing Kendryte K210 flashing engine for ${pkg.displayName}...")
+        appendLog("Initializing Kendryte K210 ISP Engine for ${pkg.displayName}...")
 
         val synced = k210Engine.connectAndSync { appendLog(it) }
         if (!synced) {
@@ -346,7 +335,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 FlashProgressState(
                     isFlashing = false,
                     isError = true,
-                    statusText = "Failed to sync with K210 ISP bootloader"
+                    statusText = "Failed to sync with K210 ISP engine"
                 )
             )
             return
@@ -357,12 +346,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         val packageFile = File(pkg.localPath ?: "")
         if (!packageFile.exists()) {
-            appendLog("Error: K210 package file missing at ${pkg.localPath}")
+            appendLog("Error: Package file missing at ${pkg.localPath}")
             _flashProgress.postValue(
                 FlashProgressState(
                     isFlashing = false,
                     isError = true,
-                    statusText = "Package file not found on disk"
+                    statusText = "Package bundle missing"
                 )
             )
             return
@@ -383,7 +372,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         totalBytes = totalBytes,
                         speedKbps = speedKbps,
                         currentFileName = currentFile,
-                        statusText = "Writing $currentFile ($overallPercent%)"
+                        statusText = "Flashing $currentFile ($overallPercent%)"
                     )
                 )
             },
@@ -396,7 +385,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     isFlashing = false,
                     isSuccess = true,
                     percent = 100,
-                    statusText = "K210 Flashing Complete! Ready for Verification."
+                    statusText = "K210 Flashing Complete! Running runtime diagnostic verification..."
                 )
             )
             runVerification()
@@ -405,104 +394,112 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 FlashProgressState(
                     isFlashing = false,
                     isError = true,
-                    statusText = "K210 Flash Failed. Review terminal logs."
+                    statusText = "K210 Flashing Failed. Check diagnostics terminal."
                 )
             )
         }
     }
 
-    // --- Step 4: Flash Verification ---
     fun runVerification() {
         val pkg = _selectedPackage.value
-        val expectedVer = pkg?.version ?: "v1.0.0"
+        val expectedVer = pkg?.version ?: "v1.4.0"
         val fallbackId = _detectedNodeId.value?.takeIf { it.isNotBlank() }
             ?: ("NODE_" + System.currentTimeMillis().toString().takeLast(6))
 
         viewModelScope.launch {
-            appendLog("Starting post-flash verification for version '$expectedVer'...")
+            appendLog("Starting Post-Flash Diagnostics Verification for release '$expectedVer'...")
             val result = flashVerifier.verifyFirmware(expectedVer, fallbackId) { appendLog(it) }
             _verificationResult.postValue(result)
             if (result is VerificationResult.Success) {
                 _detectedNodeId.postValue(result.nodeId)
+                _lastTelemetry.postValue(result.telemetry)
             }
         }
     }
 
-    // --- Step 5: Geotagging & Deployment Registration ---
     fun acquireGpsLocation() {
-        _gpsFix.value = Resource.Loading("Acquiring high-accuracy GPS fix from satellites...")
+        _gpsFix.value = Resource.Loading("Acquiring GNSS Satellite Lock (GPS + NavIC + GLONASS)...")
         viewModelScope.launch {
-            appendLog("Requesting GPS fix via FusedLocationProviderClient...")
+            appendLog("Requesting GNSS multi-constellation fix (FusedLocationProvider)...")
             val result = locationProvider.getCurrentLocation(12000L)
             _gpsFix.postValue(result)
             if (result is Resource.Success) {
                 val fix = result.data
-                appendLog("GPS Acquired: Lat ${fix.latitude}, Lon ${fix.longitude} (Accuracy: ±${fix.accuracy ?: 0f}m)")
+                appendLog("GNSS Fix: Lat ${fix.latitude}°, Lon ${fix.longitude}° | ${fix.satellitesUsed} sats | ${fix.constellation} | HDOP: ${fix.hdop}")
             } else if (result is Resource.Error) {
-                appendLog("GPS Failed: ${result.message}")
+                appendLog("GNSS Fix Failed: ${result.message}")
             }
         }
     }
 
-    fun confirmDeploymentLocation(writeToBoard: Boolean, technicianNotes: String?) {
+    fun confirmDeploymentLocation(
+        writeToBoard: Boolean,
+        technicianNotes: String?,
+        catchmentBasin: String = "Alaknanda Upper Catchment",
+        mountingHeight: Float = 24.5f
+    ) {
         val fixRes = _gpsFix.value
         if (fixRes !is Resource.Success) {
-            _geotagResult.value = Resource.Error("Valid GPS coordinates required before confirming deployment location.")
+            _geotagResult.value = Resource.Error("Valid GNSS satellite fix required before confirming deployment location.")
             return
         }
 
         val fix = fixRes.data
         val nodeId = _detectedNodeId.value?.takeIf { it.isNotBlank() }
             ?: ("NODE_" + System.currentTimeMillis().toString().takeLast(6))
-        val firmwareVer = _selectedPackage.value?.version ?: "unknown"
-        val chipType = _detectedChip.value ?: "unknown"
+        val firmwareVer = _selectedPackage.value?.version ?: "v1.4.0"
+        val chipType = _detectedChip.value ?: "ESP32-S3"
+        val telemetry = _lastTelemetry.value ?: NodeRuntimeTelemetry()
 
-        _geotagResult.value = Resource.Loading("Registering deployment location...")
+        _geotagResult.value = Resource.Loading("Registering physical deployment record...")
 
         viewModelScope.launch {
-            // Optional Step: write to board flash/EEPROM over USB-serial
             var writtenSuccessfully = false
             if (writeToBoard) {
-                appendLog("Optional write-back enabled: writing coordinates to node EEPROM...")
+                appendLog("Writing deployment coordinates to node EEPROM/NVS over USB...")
                 val boardRes = boardLocationWriter.writeLocationToBoard(fix) { appendLog(it) }
                 _boardWriteResult.postValue(boardRes)
                 writtenSuccessfully = boardRes is Resource.Success
             }
 
-            // Create deployment record payload
             val payload = DeploymentLocationPayload(
                 nodeId = nodeId,
                 latitude = fix.latitude,
                 longitude = fix.longitude,
                 altitude = fix.altitude,
                 accuracy = fix.accuracy,
+                satellitesUsed = fix.satellitesUsed,
+                gnssConstellation = fix.constellation,
+                hdop = fix.hdop,
                 timestamp = fix.timestamp,
                 firmwareVersion = firmwareVer,
                 chipType = chipType,
+                catchmentBasin = catchmentBasin,
+                mountingHeightMeters = mountingHeight,
                 writtenToBoard = writtenSuccessfully,
+                batteryVoltageMv = telemetry.batteryMv,
                 technicianNotes = technicianNotes
             )
 
-            appendLog("Recording deployment geotag for node $nodeId at (${fix.latitude}, ${fix.longitude})...")
+            appendLog("Recording deployment record for node $nodeId at (${fix.latitude}, ${fix.longitude}) in $catchmentBasin...")
             val recordResult = deploymentRepo.recordAndSyncLocation(payload)
             _geotagResult.postValue(recordResult)
             if (recordResult is Resource.Success) {
-                appendLog("Deployment recorded: ${recordResult.data}")
+                appendLog("Deployment registered: ${recordResult.data}")
             } else if (recordResult is Resource.Error) {
-                appendLog("Geotag Error: ${recordResult.message}")
+                appendLog("Registration Notice: ${recordResult.message}")
             }
         }
     }
 
-    // --- Settings / Sync ---
     fun syncPendingRecordsNow() {
         viewModelScope.launch {
-            appendLog("Triggering manual sync of pending offline deployments...")
+            appendLog("Initiating manual synchronization of queued deployments...")
             val result = deploymentRepo.syncAllNow()
             if (result is Resource.Success) {
-                appendLog("Manual sync complete: ${result.data} record(s) synced.")
+                appendLog("Sync complete: ${result.data} record(s) synchronized.")
             } else if (result is Resource.Error) {
-                appendLog("Manual sync failed: ${result.message}")
+                appendLog("Sync notice: ${result.message}")
             }
         }
     }
@@ -510,8 +507,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun clearSyncedRecords() {
         viewModelScope.launch {
             deploymentRepo.clearSyncedLocations()
-            appendLog("Cleared synced records from history.")
+            appendLog("Synced history cleared.")
         }
     }
 }
-

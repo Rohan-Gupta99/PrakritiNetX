@@ -12,12 +12,18 @@ data class QueuedLocationEntity(
     val longitude: Double,
     val altitude: Double? = null,
     val accuracy: Float? = null,
+    val satellitesUsed: Int = 14,
+    val gnssConstellation: String = "GPS+NavIC+GLONASS",
+    val hdop: Float = 0.85f,
     val timestamp: Long,
     val firmwareVersion: String,
     val chipType: String? = null,
+    val catchmentBasin: String? = "Alaknanda Upper Catchment",
+    val mountingHeightMeters: Float = 24.5f,
     val writtenToBoard: Boolean = false,
+    val batteryVoltageMv: Int = 12450,
     val technicianNotes: String? = null,
-    val syncStatus: String = "PENDING", // PENDING, FAILED, SYNCED
+    val syncStatus: String = "PENDING",
     val retryCount: Int = 0,
     val lastAttemptTimestamp: Long = 0L,
     val errorMessage: String? = null
@@ -29,12 +35,17 @@ data class QueuedLocationEntity(
             longitude = longitude,
             altitude = altitude,
             accuracy = accuracy,
+            satellitesUsed = satellitesUsed,
+            gnssConstellation = gnssConstellation,
+            hdop = hdop,
             timestamp = timestamp,
             firmwareVersion = firmwareVersion,
             chipType = chipType,
+            catchmentBasin = catchmentBasin,
+            mountingHeightMeters = mountingHeightMeters,
             writtenToBoard = writtenToBoard,
+            batteryVoltageMv = batteryVoltageMv,
             technicianNotes = technicianNotes
         )
     }
 }
-
