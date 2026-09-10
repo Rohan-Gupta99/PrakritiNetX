@@ -1,4 +1,36 @@
-
+# Python
 __pycache__/
 *.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
 
+# Environment & Secrets
+.env
+.env.local
+*.key
+*.pem
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build outputs
+*.apk
+build/
+app/build/
+.gradle/
+
+# ML artifacts
+*.h5
+*.tflite
+*.kmodel
+runs/

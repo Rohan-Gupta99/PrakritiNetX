@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased transition-colors duration-300;
+    overflow-x: hidden;
+  }
+}
+
+/* Light / Dark Mode Global Styling */
+.dark body,
+body.dark {
+  background-color: #070a10;
+  color: #f8fafc;
+}
+
+.light body,
+body.light {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0d131f;
+}
+.light ::-webkit-scrollbar-track {
+  background: #e2e8f0;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Glassmorphism & Panel Utilities */
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  color: #f8fafc;
+}
+
+.light .glass-panel {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+  color: #0f172a;
+}
+
+.dark .glass-panel-glow {
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.15);
+}
+
+.light .glass-panel-glow {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(6, 182, 212, 0.6);
+  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.15);
+}
+
+/* Radar pulse animation for map and node alerts */
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.radar-ring {
+  position: absolute;
+  border-radius: 50%;
+  animation: radar-pulse 2s infinite ease-out;
+}
+
+/* Leaflet container styling */
+.dark .leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: #0b1120 !important;
+  font-family: inherit;
+}
+
+.light .leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: #e2e8f0 !important;
+  font-family: inherit;
+}
+
+.dark .leaflet-popup-content-wrapper {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+}
+
+.light .leaflet-popup-content-wrapper {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark .leaflet-popup-tip {
+  background: #0f172a !important;
+}
+
+.light .leaflet-popup-tip {
+  background: #ffffff !important;
+}
+
+/* Animated flow lines */
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+.animated-mesh-link {
+  stroke-dasharray: 6, 8;
+  animation: dash-flow 2s linear infinite;
+}
+
+.animated-river-surge {
+  stroke-dasharray: 8, 12;
+  animation: dash-flow 1.2s linear infinite;
+}

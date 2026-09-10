@@ -1,0 +1,7 @@
+# PrakritiNetX — Root-Level Dependencies
+# For ML Model specific dependencies, see: Software/ML_Model/requirements.txt
+# For Mobile App dependencies, see: Software/Mobile Firmware Flasher Application/build.gradle.kts
+
+# Base-Station Mock Backend
+flask>=3.0.0
+requests>=2.31.0
