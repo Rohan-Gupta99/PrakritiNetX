@@ -1,0 +1,10 @@
+.venv/
+runs/
+build/
+datasets/raw/*
+!datasets/raw/.gitkeep
+datasets/processed/*
+!datasets/processed/.gitkeep
+__pycache__/
+*.pyc
+*.h5
