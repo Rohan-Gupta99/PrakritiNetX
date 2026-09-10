@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FieldFlash</string>
+    <string name="app_tagline">PrakritiNetX Node Provisioner &amp; Flasher</string>
+
+    <!-- Navigation & Wizard Steps -->
+    <string name="step1_title">1. Select Firmware</string>
+    <string name="step2_title">2. Connect USB</string>
+    <string name="step3_title">3. Flash Engine</string>
+    <string name="step4_title">4. Verify Node</string>
+    <string name="step5_title">5. Geotag &amp; Deploy</string>
+    <string name="nav_settings">Settings &amp; Queue</string>
+
+    <!-- Step 1: Firmware -->
+    <string name="firmware_tab_cloud">Repository (Online / Cache)</string>
+    <string name="firmware_tab_local">Local Storage (SAF)</string>
+    <string name="refresh_manifest">Fetch Latest Manifest</string>
+    <string name="browse_storage">Pick Firmware File(s)</string>
+    <string name="no_firmware_selected">No firmware package selected</string>
+    <string name="chip_esp32">ESP32 / ESP32-S3</string>
+    <string name="chip_k210">Kendryte K210</string>
+
+    <!-- Step 2: Connection -->
+    <string name="usb_status_disconnected">No USB-Serial Device Detected</string>
+    <string name="usb_status_connected">Connected to USB-Serial Bridge</string>
+    <string name="connect_device">Initialize Connection</string>
+    <string name="disconnect_device">Disconnect</string>
+    <string name="identify_board">Handshake &amp; Detect Chip</string>
+    <string name="baud_rate_label">Baud Rate:</string>
+
+    <!-- Step 3: Flash -->
+    <string name="start_flash">START FIRMWARE FLASH</string>
+    <string name="abort_flash">ABORT OPERATION</string>
+    <string name="flash_progress_idle">Ready to flash node</string>
+    <string name="flashing_in_progress">Flashing in progress…</string>
+
+    <!-- Step 4: Verification -->
+    <string name="verification_title">Boot &amp; Version Verification</string>
+    <string name="verification_desc">Resetting chip to run mode and querying runtime version via serial link</string>
+    <string name="verify_btn">RUN VERIFICATION NOW</string>
+    <string name="verification_success">NODE VERIFIED SUCCESSFULLY</string>
+    <string name="verification_failed">VERIFICATION FAILED</string>
+    <string name="proceed_to_geotag">PROCEED TO GEOTAG &gt;&gt;</string>
+
+    <!-- Step 5: Geotag -->
+    <string name="geotag_title">Confirm Physical Deployment Location</string>
+    <string name="geotag_instruction">Trigger only once the sensor node is physically bolted and mounted at its final riverbank or ridge location.</string>
+    <string name="btn_confirm_location">CONFIRM &amp; REGISTER LOCATION</string>
+    <string name="toggle_write_to_node">Write GPS coordinates back to node EEPROM/NVS over USB</string>
+    <string name="queued_offline">Device is offline. Location queued for auto-sync.</string>
+    <string name="uploaded_cloud">Location successfully registered with backend cloud.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">FieldFlash Settings &amp; Queue</string>
+    <string name="backend_url_label">Backend API Base URL</string>
+    <string name="save_settings">Save Settings</string>
+    <string name="offline_queue_title">Pending Offline Deployment Queue</string>
+    <string name="sync_all_now">Sync Pending Records Now</string>
+</resources>
+

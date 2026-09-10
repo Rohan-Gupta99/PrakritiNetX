@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Tactical Palette (Field Rugged Theme) -->
+    <color name="brand_primary">#FF6D00</color>            <!-- Signal Amber/Orange -->
+    <color name="brand_primary_variant">#E65100</color>    <!-- Deep Safety Amber -->
+    <color name="brand_secondary">#00B0FF</color>          <!-- Vivid Cyan / Blue -->
+    <color name="brand_secondary_variant">#0091EA</color>
+
+    <!-- Backgrounds & Surfaces (Outdoor High-Contrast Dark) -->
+    <color name="bg_dark">#121417</color>                  <!-- Deep Slate Black -->
+    <color name="surface_dark">#1E2229</color>              <!-- Card Surface -->
+    <color name="surface_dark_elevated">#282E37</color>     <!-- Elevated Card / Input -->
+    <color name="surface_dark_stroke">#3A424E</color>       <!-- Card Border -->
+
+    <!-- Text Colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B0BEC5</color>
+    <color name="text_muted">#78909C</color>
+
+    <!-- Status & Signal Colors -->
+    <color name="status_success">#00E676</color>           <!-- Bright Neon Green -->
+    <color name="status_success_dim">#1B5E20</color>
+    <color name="status_error">#FF5252</color>             <!-- Bright Coral Red -->
+    <color name="status_error_dim">#B71C1C</color>
+    <color name="status_warning">#FFD600</color>           <!-- Warning Yellow -->
+    <color name="status_info">#40C4FF</color>
+
+    <!-- Terminal & Log View -->
+    <color name="terminal_bg">#0A0C0E</color>
+    <color name="terminal_text">#00E676</color>
+    <color name="terminal_cursor">#FF6D00</color>
+</resources>
+

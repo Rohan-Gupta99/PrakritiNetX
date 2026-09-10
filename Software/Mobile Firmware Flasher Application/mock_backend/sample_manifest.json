@@ -1,0 +1,71 @@
+{
+  "network": "PrakritiNetX",
+  "manifest_version": "1.0.0",
+  "updated_at": "2026-09-10T12:00:00Z",
+  "packages": [
+    {
+      "id": "prakriti-water-esp32-v1.4.0",
+      "node_type": "water-esp32",
+      "display_name": "Water & Flood Monitoring Node (ESP32-S3)",
+      "version": "v1.4.0",
+      "chip_type": "esp32",
+      "description": "Camera turbidity analysis, water level, and rain gauge telemetry node.",
+      "files": [
+        {
+          "name": "bootloader.bin",
+          "offset": "0x1000",
+          "download_url": "firmware/download/bootloader.bin",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "partition-table.bin",
+          "offset": "0x8000",
+          "download_url": "firmware/download/partition-table.bin",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "prakriti_water_v1.4.0.bin",
+          "offset": "0x10000",
+          "download_url": "firmware/download/prakriti_water_v1.4.0.bin",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "prakriti-fire-k210-v2.1.0",
+      "node_type": "fire-k210",
+      "display_name": "Forest Fire & Smoke Vision Node (K210 KPU)",
+      "version": "v2.1.0",
+      "chip_type": "k210",
+      "description": "Kendryte K210 edge CNN inference node with YG1006 flame wake trigger.",
+      "package_url": "firmware/download/fire_k210_bundle_v2.1.0.kfpkg",
+      "files": []
+    },
+    {
+      "id": "prakriti-seismic-esp32-v1.1.0",
+      "node_type": "seismic-esp32",
+      "display_name": "Seismic & Landslide Inclinometer Node (ESP32-S3)",
+      "version": "v1.1.0",
+      "chip_type": "esp32",
+      "description": "ADXL355 micro-tremor, tilt angle, and capacitive soil moisture precursor telemetry.",
+      "files": [
+        {
+          "name": "bootloader.bin",
+          "offset": "0x1000",
+          "download_url": "firmware/download/bootloader.bin"
+        },
+        {
+          "name": "partition-table.bin",
+          "offset": "0x8000",
+          "download_url": "firmware/download/partition-table.bin"
+        },
+        {
+          "name": "prakriti_seismic_v1.1.0.bin",
+          "offset": "0x10000",
+          "download_url": "firmware/download/prakriti_seismic_v1.1.0.bin"
+        }
+      ]
+    }
+  ]
+}
+

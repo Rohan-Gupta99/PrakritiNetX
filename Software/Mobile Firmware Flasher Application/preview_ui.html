@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FieldFlash App UI Preview & Simulator</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .scrollbar-thin::-webkit-scrollbar {
+      width: 4px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background: #374151;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 p-4 min-h-screen flex flex-col items-center justify-center font-sans antialiased">
+
+  <!-- Header Banner -->
+  <div class="max-w-md w-full mb-3 flex items-center justify-between">
+    <div>
+      <div class="flex items-center space-x-2">
+        <span class="inline-block w-3 h-3 rounded-full bg-amber-500 animate-ping"></span>
+        <h1 class="text-xl font-black text-amber-500 tracking-wider">FieldFlash</h1>
+        <span class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono font-semibold border border-amber-500/30">NATIVE UI</span>
+      </div>
+      <p class="text-xs text-slate-400">PrakritiNetX Sensor Node Provisioner & Flasher</p>
+    </div>
+    <div class="text-right">
+      <button onclick="switchTab('settings')" class="text-xs bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1 transition">
+        <span>⚙ Settings & Queue</span>
+        <span id="queueBadge" class="hidden bg-amber-500 text-black text-[10px] font-bold px-1.5 py-0.2 rounded-full">1</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Phone Frame Mockup -->
+  <div class="max-w-md w-full bg-[#121417] border-2 border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[740px] relative">
+
+    <!-- Top App Bar & Status -->
+    <div class="bg-[#1E2229] border-b border-slate-700/60 px-4 py-2 flex items-center justify-between text-xs text-slate-400 select-none">
+      <div class="flex items-center space-x-2">
+        <span class="font-mono text-slate-200">14:30</span>
+        <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-emerald-400 font-mono">GPS ACTIVE</span>
+      </div>
+      <div class="flex items-center space-x-2 text-[11px]">
+        <span id="connIndicator" class="text-rose-400">● USB DISCONNECTED</span>
+        <span>🔋 94%</span>
+      </div>
+    </div>
+
+    <!-- 5-Step Navigation Tabs -->
+    <div class="bg-[#282E37] border-b border-slate-700/80 px-2 py-1.5 flex items-center justify-between overflow-x-auto text-[11px] font-bold tracking-wide">
+      <button onclick="switchTab('step1')" id="tabBtn1" class="tab-btn px-2.5 py-1 rounded text-amber-500 bg-amber-500/10 border border-amber-500/30 transition">1. FIRMWARE</button>
+      <button onclick="switchTab('step2')" id="tabBtn2" class="tab-btn px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 transition">2. CONNECT</button>
+      <button onclick="switchTab('step3')" id="tabBtn3" class="tab-btn px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 transition">3. FLASH</button>
+      <button onclick="switchTab('step4')" id="tabBtn4" class="tab-btn px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 transition">4. VERIFY</button>
+      <button onclick="switchTab('step5')" id="tabBtn5" class="tab-btn px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 transition">5. GEOTAG</button>
+    </div>
+
+    <!-- Active Viewport -->
+    <div class="flex-1 overflow-y-auto p-4 scrollbar-thin space-y-4">
+
+      <!-- STEP 1: FIRMWARE SELECTION -->
+      <div id="step1View" class="step-view space-y-3">
+        <div class="flex gap-2">
+          <button onclick="mockFetchManifest()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold py-2 px-3 rounded-lg border border-cyan-500/30 text-xs flex items-center justify-center gap-1">
+            <span>🔄 Fetch Manifest</span>
+          </button>
+          <button onclick="mockSafImport()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2 px-3 rounded-lg border border-slate-700 text-xs flex items-center justify-center gap-1">
+            <span>📁 Import (SAF)</span>
+          </button>
+        </div>
+
+        <div class="text-[11px] font-bold text-slate-400 tracking-wider">AVAILABLE FIRMWARE PACKAGES</div>
+
+        <!-- Package Card 1: Water ESP32-S3 -->
+        <div onclick="selectPkg('water')" id="pkgCardWater" class="bg-[#1E2229] border border-amber-500/60 rounded-xl p-3.5 cursor-pointer hover:border-amber-400 transition relative">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="font-bold text-slate-100 text-sm">Water & Flood Monitoring</div>
+              <div class="text-[11px] text-slate-400">Node Type: water-esp32</div>
+            </div>
+            <div class="flex gap-1.5">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">ESP32-S3</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">v1.4.0</span>
+            </div>
+          </div>
+          <p class="text-xs text-slate-300 mt-2">River turbidity camera analysis, water level gauge, and rain bucket telemetry.</p>
+          <div class="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-700/50">
+            <span class="text-emerald-400 font-semibold text-[11px]">● Ready Offline (Cached)</span>
+            <span class="text-[11px] bg-amber-500 text-black font-bold px-2.5 py-1 rounded">SELECTED</span>
+          </div>
+        </div>
+
+        <!-- Package Card 2: Fire K210 -->
+        <div onclick="selectPkg('fire')" id="pkgCardFire" class="bg-[#1E2229] border border-slate-700/80 rounded-xl p-3.5 cursor-pointer hover:border-slate-500 transition">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="font-bold text-slate-100 text-sm">Forest Fire & Smoke Vision</div>
+              <div class="text-[11px] text-slate-400">Node Type: fire-k210</div>
+            </div>
+            <div class="flex gap-1.5">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">K210 KPU</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">v2.1.0</span>
+            </div>
+          </div>
+          <p class="text-xs text-slate-300 mt-2">MobileNet edge CNN inference bundle (.kfpkg) with YG1006 flame wake trigger.</p>
+          <div class="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-700/50">
+            <span class="text-amber-400 font-semibold text-[11px]">○ Cloud (.kfpkg bundle)</span>
+            <button onclick="event.stopPropagation(); mockDownloadFire()" class="text-[11px] bg-slate-800 border border-cyan-500/40 text-cyan-400 font-bold px-2.5 py-1 rounded hover:bg-slate-700">Cache (8.2 KB)</button>
+          </div>
+        </div>
+
+        <!-- Package Card 3: Seismic ESP32 -->
+        <div onclick="selectPkg('seismic')" id="pkgCardSeismic" class="bg-[#1E2229] border border-slate-700/80 rounded-xl p-3.5 cursor-pointer hover:border-slate-500 transition">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="font-bold text-slate-100 text-sm">Seismic & Landslide Precursor</div>
+              <div class="text-[11px] text-slate-400">Node Type: seismic-esp32</div>
+            </div>
+            <div class="flex gap-1.5">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">ESP32-S3</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">v1.1.0</span>
+            </div>
+          </div>
+          <p class="text-xs text-slate-300 mt-2">ADXL355 micro-tremor, slope tilt angle, and capacitive soil moisture telemetry.</p>
+          <div class="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-700/50">
+            <span class="text-emerald-400 font-semibold text-[11px]">● Ready Offline</span>
+            <span class="text-[11px] text-slate-400">Tap to Select</span>
+          </div>
+        </div>
+
+        <button onclick="switchTab('step2')" class="w-full bg-amber-500 hover:bg-amber-400 text-black font-extrabold py-3.5 px-4 rounded-xl text-sm tracking-wide shadow-lg transition mt-4">
+          NEXT: CONNECT USB >>
+        </button>
+      </div>
+
+      <!-- STEP 2: USB CONNECT & HANDSHAKE -->
+      <div id="step2View" class="step-view hidden space-y-3">
+        <!-- Target Context -->
+        <div class="bg-[#1E2229] border border-slate-700/80 rounded-xl p-3">
+          <div class="text-[10px] font-bold text-slate-400 tracking-wider">ACTIVE TARGET FIRMWARE</div>
+          <div id="step2TargetTitle" class="text-sm font-bold text-slate-100 mt-0.5">Water & Flood Monitoring (ESP32-S3 v1.4.0)</div>
+        </div>
+
+        <!-- USB Hardware Status -->
+        <div class="bg-[#1E2229] border border-slate-700/80 rounded-xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400">USB HARDWARE BRIDGE</span>
+            <span id="step2Badge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30">DISCONNECTED</span>
+          </div>
+
+          <p id="step2UsbText" class="text-xs text-slate-300">Plug phone into node USB-C port via USB-OTG adapter. Supported chips: CP2102, CH340, FTDI, CDC-ACM.</p>
+
+          <div class="flex gap-2">
+            <button onclick="mockConnectUsb()" id="btnConnectUsb" class="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-bold py-2.5 rounded-lg text-xs transition">
+              CONNECT USB
+            </button>
+            <button onclick="mockDisconnectUsb()" id="btnDisconnectUsb" disabled class="flex-1 bg-slate-800 text-slate-500 font-bold py-2.5 rounded-lg text-xs border border-slate-700 transition">
+              DISCONNECT
+            </button>
+          </div>
+        </div>
+
+        <!-- Chip Detection Card -->
+        <div class="bg-[#1E2229] border border-slate-700/80 rounded-xl p-4 space-y-3">
+          <div class="text-xs font-bold text-slate-400">ROM BOOTLOADER HANDSHAKE</div>
+          <div id="chipInfoBox" class="bg-slate-900/90 rounded-lg p-2.5 font-mono text-xs text-slate-300 space-y-1">
+            <div>Silicon Target: <span id="infoChip" class="text-slate-500">Not Handshaked</span></div>
+            <div>Unique Node ID: <span id="infoNodeId" class="text-slate-500">Unknown</span></div>
+          </div>
+          <button onclick="mockHandshake()" id="btnHandshake" disabled class="w-full bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold py-2.5 rounded-lg text-xs border border-cyan-500/30 transition">
+            HANDSHAKE & DETECT CHIP
+          </button>
+        </div>
+
+        <button onclick="switchTab('step3')" class="w-full bg-amber-500 hover:bg-amber-400 text-black font-extrabold py-3.5 px-4 rounded-xl text-sm tracking-wide shadow-lg transition mt-4">
+          NEXT: FLASH ENGINE >>
+        </button>
+      </div>
+
+      <!-- STEP 3: FLASHING ENGINE & LIVE TERMINAL -->
+      <div id="step3View" class="step-view hidden space-y-3">
+        <!-- Offsets Summary Card -->
+        <div class="bg-[#1E2229] border border-slate-700/80 rounded-xl p-3">
+          <div class="flex items-center justify-between">
+            <span id="flashEngineLabel" class="text-xs font-bold text-amber-400">ESP32 NATIVE FLASH ENGINE</span>
+            <span class="text-[10px] font-mono text-slate-400">921,600 bps</span>
+          </div>
+          <div id="flashOffsetsText" class="text-[11px] text-slate-300 mt-1 font-mono">
+            0x1000: bootloader | 0x8000: partitions | 0x10000: app.bin
+          </div>
+        </div>
+
+        <!-- Progress Card -->
+        <div class="bg-[#1E2229] border border-slate-700/80 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span id="flashStatusText" class="text-xs font-bold text-slate-200">Ready to flash node</span>
+            <span id="flashPercentText" class="text-base font-black text-amber-500">0%</span>
+          </div>
+
+          <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+            <div id="flashProgressBar" class="bg-amber-500 h-full w-0 transition-all duration-150"></div>
+          </div>
+
+          <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+            <span id="flashSpeedText">0 KB / 15.3 KB (0.0 KB/s)</span>
+            <span id="flashFileText">idle</span>
+          </div>
+        </div>
+
+        <!-- Big Flash Button -->
+        <button onclick="startFlashingSim()" id="btnStartFlash" class="w-full bg-amber-500 hover:bg-amber-400 text-black font-black py-3.5 px-4 rounded-xl text-sm tracking-wide shadow-lg transition">
+          START FIRMWARE FLASH
+        </button>
+
+        <!-- Monospace Terminal Log View -->
+        <div class="bg-[#0A0C0E] border border-slate-800 rounded-xl p-3 flex flex-col h-56 font-mono">
+          <div class="flex items-center justify-between pb-1.5 border-b border-slate-800 text-[10px] text-slate-500 font-bold">
+            <span>SERIAL PROTOCOL TERMINAL</span>
+            <button onclick="clearTerminal()" class="text-cyan-400 hover:underline">CLEAR</button>
+          </div>
+          <div id="terminalBody" class="flex-1 overflow-y-auto text-[11px] text-emerald-400 space-y-1 mt-1.5 scrollbar-thin pr-1">
+            <div class="text-slate-500">[14:30:00] FieldFlash Protocol Engine initialized.</div>
+            <div class="text-slate-500">[14:30:00] Standing by for USB hardware connection...</div>
+          </div>
+        </div>
+
+        <button onclick="switchTab('step4')" id="btnProceedVerify" class="hidden w-full bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold py-3.5 px-4 rounded-xl text-sm tracking-wide shadow-lg transition">
+          PROCEED TO VERIFICATION >>
+        </button>
+      </div>
+
+      <!-- STEP 4: VERIFICATION & SAFETY -->
+      <div id="step4View" class="step-view hidden space-y-3">
+        <div class="bg-[#1E2229] border border-slate-700/80 rounded-xl p-4 space-y-1.5">
+          <div class="text-sm font-bold text-slate-100">Boot &amp; Version Verification</div>
+          <p class="text-xs text-slate-300">Reboots MCU to run mode and queries runtime serial version to guarantee node is not bricked.</p>
+        </div>
+
+        <!-- Verification Result Banner -->
+        <div id="verifyResultCard" class="bg-[#1E2229] border border-amber-500/40 rounded-xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span id="verifyStateBanner" class="text-xs font-black text-amber-400 tracking-wide">VERIFICATION PENDING</span>
+            <span id="verifySpinner" class="hidden animate-spin text-amber-500">⏳</span>
+          </div>
+
+          <div class="bg-slate-900/90 rounded-lg p-3 space-y-1.5 text-xs font-mono">
+            <div>Expected Target: <span id="vExpectedVer" class="text-slate-200 font-bold">v1.4.0</span></div>
+            <div>Reported Serial: <span id="vReportedVer" class="text-slate-400 font-bold">--</span></div>
+            <div>Verified Node ID: <span id="vVerifiedId" class="text-cyan-400 font-bold">--</span></div>
+          </div>
+
+          <!-- Raw Boot Banner Snippet -->
+          <div class="bg-[#0A0C0E] border border-slate-800 rounded p-2 text-[10px] text-emerald-400 font-mono">
+            <div class="text-slate-500 mb-1">Boot Output Stream:</div>
+            <div id="vBootOutput" class="text-slate-400">Awaiting runtime response...</div>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="runVerificationSim(true)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold py-2.5 rounded-lg text-xs border border-emerald-500/30">
+            TEST PASS (v1.4.0)
+          </button>
+          <button onclick="runVerificationSim(false)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-rose-400 font-bold py-2.5 rounded-lg text-xs border border-rose-500/30">
+            TEST FAIL (Mismatch)
+          </button>
+        </div>
+
+        <button onclick="switchTab('step5')" id="btnProceedGeotag" disabled class="w-full bg-slate-800 text-slate-500 font-extrabold py-3.5 px-4 rounded-xl text-sm tracking-wide transition mt-4">
+          PROCEED TO GEOTAG >>
+        </button>
+      </div>
+
+      <!-- STEP 5: GEOTAGGING & OFFLINE QUEUE -->
+      <div id="step5View" class="step-view hidden space-y-3">
+        <!-- Critical Protocol Banner -->
+        <div class="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3.5 space-y-1">
+          <div class="text-xs font-black text-amber-400">PHYSICAL MOUNT PROTOCOL</div>
+          <p class="text-[11px] text-amber-200/90 leading-relaxed">
+            Trigger ONLY once the sensor node is physically bolted and mounted at its final riverbank or ridge location, NOT while in the workshop.
+          </p>
+        </div>
+
+        <!-- GPS Fix Card -->
+        <div class="bg-[#1E2229] border border-slate-700/80 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400">GPS GEOLOCATION FIX</span>
+            <span id="gpsStatusPill" class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">LOCKED</span>
+          </div>
+
+          <div class="bg-slate-900/90 rounded-lg p-3 text-xs font-mono space-y-1 text-slate-200">
+            <div>Latitude:  <span id="geoLat" class="text-cyan-400 font-bold">30.316496° N</span></div>
+            <div>Longitude: <span id="geoLon" class="text-cyan-400 font-bold">78.032188° E</span></div>
+            <div>Altitude:  <span id="geoAlt" class="text-slate-300">1,420.5 m</span> | Accuracy: <span id="geoAcc" class="text-emerald-400">±3.8 m</span></div>
+          </div>
+
+          <button onclick="acquireNewGps()" class="w-full bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold py-2 rounded-lg text-xs border border-cyan-500/30">
+            REFRESH GPS FIX
+          </button>
+        </div>
+
+        <!-- Node & Writeback Options -->
+        <div class="bg-[#1E2229] border border-slate-700/80 rounded-xl p-3.5 space-y-3">
+          <div class="text-xs font-bold text-slate-400">NODE REGISTRATION DETAILS</div>
+          <div class="text-xs text-slate-300 space-y-0.5 font-mono">
+            <div>Node ID: <span id="geoNodeId" class="text-amber-400 font-bold">30:AE:A4:07:0D:64</span></div>
+            <div>Firmware: <span id="geoFwVer" class="text-slate-200">v1.4.0 (ESP32-S3)</span></div>
+          </div>
+
+          <!-- On-Board Writeback Toggle -->
+          <label class="flex items-center justify-between text-xs text-slate-200 cursor-pointer pt-2 border-t border-slate-700/60">
+            <div class="pr-2">
+              <div class="font-semibold text-slate-100">Write coordinates to board NVS</div>
+              <div class="text-[10px] text-slate-400">Sends CONFIG:LOC via USB for offline node self-reporting</div>
+            </div>
+            <input id="toggleWriteBoard" type="checkbox" checked class="w-4 h-4 accent-amber-500">
+          </label>
+
+          <!-- Technician Site Notes -->
+          <div class="pt-1">
+            <label class="text-[10px] font-bold text-slate-400 block mb-1">TECHNICIAN SITE NOTES</label>
+            <input id="siteNotes" type="text" value="Alaknanda River - Bridge Pillar Node #3" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <!-- Result Banner -->
+        <div id="geotagResultBox" class="hidden bg-emerald-500/10 border border-emerald-500/40 rounded-xl p-3 text-xs text-emerald-300">
+          ✓ Deployment confirmed! Stored in local offline Room queue; auto-syncing when internet returns.
+        </div>
+
+        <button onclick="confirmDeployment()" id="btnConfirmDeploy" class="w-full bg-amber-500 hover:bg-amber-400 text-black font-black py-3.5 px-4 rounded-xl text-sm tracking-wide shadow-lg transition">
+          CONFIRM &amp; REGISTER DEPLOYMENT
+        </button>
+
+        <button onclick="switchTab('step1')" id="btnFinishCycle" class="hidden w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl text-xs border border-slate-700 transition">
+          DONE / FLASH ANOTHER NODE
+        </button>
+      </div>
+
+      <!-- SETTINGS & QUEUE VIEW -->
+      <div id="settingsView" class="step-view hidden space-y-3">
+        <div class="bg-[#1E2229] border border-slate-700/80 rounded-xl p-3.5 space-y-2">
+          <div class="text-xs font-bold text-slate-400">BACKEND REST API ENDPOINT</div>
+          <input id="settingUrl" type="text" value="http://192.168.1.100:8080/" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-cyan-400">
+          <button onclick="saveSettings()" class="w-full bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold py-2 rounded-lg text-xs border border-cyan-500/30">
+            SAVE ENDPOINT
+          </button>
+        </div>
+
+        <div class="bg-[#1E2229] border border-slate-700/80 rounded-xl p-3.5 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="text-xs font-bold text-slate-400">PENDING OFFLINE QUEUE (ROOM DB)</div>
+            <button onclick="syncAllRecords()" class="bg-amber-500 text-black text-[10px] font-bold px-2 py-1 rounded">Sync All</button>
+          </div>
+
+          <div id="queueContainer" class="space-y-2 text-xs">
+            <div class="bg-slate-900 rounded-lg p-2.5 border border-slate-800 space-y-1">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-slate-200">NODE: 30:AE:A4:07:0D:64</span>
+                <span class="text-[9px] bg-amber-500/20 text-amber-400 font-bold px-1.5 py-0.5 rounded border border-amber-500/30">PENDING</span>
+              </div>
+              <div class="text-slate-400 text-[11px]">30.3165° N, 78.0322° E (±3.8m)</div>
+              <div class="text-[10px] text-slate-500">Firmware: v1.4.0 | Board NVS: Synced</div>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="switchTab('step1')" class="w-full bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs border border-slate-700">
+          &lt;&lt; Return to Wizard
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Bottom Status Bar -->
+    <div class="bg-[#1E2229] border-t border-slate-700/60 px-4 py-2 flex items-center justify-between text-[11px] text-slate-400">
+      <div class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span id="bottomStatus">Ready: Select package to begin</span>
+      </div>
+      <span class="font-mono text-[10px] text-slate-500">v1.0.0 (Native)</span>
+    </div>
+
+  </div>
+
+  <!-- Interactive Logic -->
+  <script>
+    let selectedPackage = {
+      id: 'water',
+      title: 'Water & Flood Monitoring',
+      chip: 'ESP32-S3',
+      chipType: 'esp32',
+      version: 'v1.4.0',
+      nodeId: '30:AE:A4:07:0D:64',
+      size: 15360
+    };
+
+    let isUsbConnected = false;
+    let isHandshaked = false;
+    let isVerified = false;
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.step-view').forEach(v => v.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('text-amber-500', 'bg-amber-500/10', 'border', 'border-amber-500/30');
+        b.classList.add('text-slate-400');
+      });
+
+      if (tabId === 'step1') {
+        document.getElementById('step1View').classList.remove('hidden');
+        setActiveTab('tabBtn1');
+      } else if (tabId === 'step2') {
+        document.getElementById('step2View').classList.remove('hidden');
+        setActiveTab('tabBtn2');
+      } else if (tabId === 'step3') {
+        document.getElementById('step3View').classList.remove('hidden');
+        setActiveTab('tabBtn3');
+      } else if (tabId === 'step4') {
+        document.getElementById('step4View').classList.remove('hidden');
+        setActiveTab('tabBtn4');
+      } else if (tabId === 'step5') {
+        document.getElementById('step5View').classList.remove('hidden');
+        setActiveTab('tabBtn5');
+      } else if (tabId === 'settings') {
+        document.getElementById('settingsView').classList.remove('hidden');
+      }
+    }
+
+    function setActiveTab(btnId) {
+      const btn = document.getElementById(btnId);
+      if (btn) {
+        btn.classList.add('text-amber-500', 'bg-amber-500/10', 'border', 'border-amber-500/30');
+        btn.classList.remove('text-slate-400');
+      }
+    }
+
+    function selectPkg(type) {
+      document.getElementById('pkgCardWater').classList.remove('border-amber-500/60');
+      document.getElementById('pkgCardFire').classList.remove('border-amber-500/60');
+      document.getElementById('pkgCardSeismic').classList.remove('border-amber-500/60');
+
+      if (type === 'water') {
+        selectedPackage = { id: 'water', title: 'Water & Flood Monitoring', chip: 'ESP32-S3', chipType: 'esp32', version: 'v1.4.0', nodeId: '30:AE:A4:07:0D:64', size: 15360 };
+        document.getElementById('pkgCardWater').classList.add('border-amber-500/60');
+      } else if (type === 'fire') {
+        selectedPackage = { id: 'fire', title: 'Forest Fire & Smoke Vision', chip: 'K210', chipType: 'k210', version: 'v2.1.0', nodeId: 'K210_9A3F1B008C2D', size: 24576 };
+        document.getElementById('pkgCardFire').classList.add('border-amber-500/60');
+      } else {
+        selectedPackage = { id: 'seismic', title: 'Seismic & Landslide Precursor', chip: 'ESP32-S3', chipType: 'esp32', version: 'v1.1.0', nodeId: '30:AE:A4:08:1E:82', size: 14200 };
+        document.getElementById('pkgCardSeismic').classList.add('border-amber-500/60');
+      }
+
+      document.getElementById('step2TargetTitle').innerText = `${selectedPackage.title} (${selectedPackage.chip} ${selectedPackage.version})`;
+      document.getElementById('flashEngineLabel').innerText = selectedPackage.chipType === 'k210' ? 'KENDRYTE K210 ISP FLASH ENGINE' : 'ESP32 NATIVE FLASH ENGINE';
+      document.getElementById('flashOffsetsText').innerText = selectedPackage.chipType === 'k210' ? 'Package: .kfpkg bundle with flash-list.json' : '0x1000: bootloader | 0x8000: partitions | 0x10000: app.bin';
+      document.getElementById('vExpectedVer').innerText = selectedPackage.version;
+      document.getElementById('geoFwVer').innerText = `${selectedPackage.version} (${selectedPackage.chip})`;
+      logTerminal(`Selected firmware package: ${selectedPackage.title} (${selectedPackage.chip})`);
+    }
+
+    function mockFetchManifest() {
+      logTerminal(`Connecting to manifest endpoint: http://192.168.1.100:8080/firmware/manifest...`);
+      setTimeout(() => {
+        logTerminal(`HTTP 200 OK: Manifest retrieved (3 packages available).`);
+      }, 300);
+    }
+
+    function mockSafImport() {
+      logTerminal(`Storage Access Framework (SAF) opened: User picked 'imported_water_node.bin' (0x10000)`);
+      alert("SAF File Picker Simulated: Imported 'imported_water_node.bin' from Downloads!");
+    }
+
+    function mockDownloadFire() {
+      logTerminal(`Downloading fire_k210_bundle_v2.1.0.kfpkg (8.2 KB)...`);
+      setTimeout(() => {
+        logTerminal(`Saved to app-private cache: context.filesDir/firmware/fire-k210/`);
+        alert("Package downloaded and cached for offline field flashing!");
+      }, 500);
+    }
+
+    function mockConnectUsb() {
+      isUsbConnected = true;
+      document.getElementById('connIndicator').innerText = '● USB CONNECTED (CP2102)';
+      document.getElementById('connIndicator').className = 'text-emerald-400';
+      document.getElementById('step2Badge').innerText = 'CONNECTED';
+      document.getElementById('step2Badge').className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+      document.getElementById('step2UsbText').innerText = 'Device: Silicon Labs CP2102 USB to UART Bridge\nVendor ID: 0x10C4 | Product ID: 0xEA60 | Port: 0';
+      document.getElementById('btnConnectUsb').disabled = true;
+      document.getElementById('btnConnectUsb').className = 'flex-1 bg-slate-800 text-slate-500 font-bold py-2.5 rounded-lg text-xs';
+      document.getElementById('btnDisconnectUsb').disabled = false;
+      document.getElementById('btnDisconnectUsb').className = 'flex-1 bg-slate-800 text-rose-400 font-bold py-2.5 rounded-lg text-xs border border-rose-500/30 hover:bg-slate-700';
+      document.getElementById('btnHandshake').disabled = false;
+      document.getElementById('btnHandshake').className = 'w-full bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold py-2.5 rounded-lg text-xs border border-cyan-500/30';
+      logTerminal('USB Host: Attached CP2102 UART Bridge (/dev/bus/usb/001/002)');
+    }
+
+    function mockDisconnectUsb() {
+      isUsbConnected = false;
+      document.getElementById('connIndicator').innerText = '● USB DISCONNECTED';
+      document.getElementById('connIndicator').className = 'text-rose-400';
+      document.getElementById('step2Badge').innerText = 'DISCONNECTED';
+      document.getElementById('step2Badge').className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30';
+      document.getElementById('btnConnectUsb').disabled = false;
+      document.getElementById('btnConnectUsb').className = 'flex-1 bg-amber-500 hover:bg-amber-400 text-black font-bold py-2.5 rounded-lg text-xs';
+      document.getElementById('btnDisconnectUsb').disabled = true;
+      document.getElementById('btnDisconnectUsb').className = 'flex-1 bg-slate-800 text-slate-500 font-bold py-2.5 rounded-lg text-xs border border-slate-700';
+      document.getElementById('btnHandshake').disabled = true;
+      logTerminal('USB Host: Port closed.');
+    }
+
+    function mockHandshake() {
+      logTerminal(`Asserting DTR/RTS pulse into ROM Bootloader...`);
+      setTimeout(() => {
+        if (selectedPackage.chipType === 'k210') {
+          logTerminal(`Kendryte ISP greeting (0xC1) acknowledged: Kendryte ISP v0.1.0`);
+          document.getElementById('infoChip').innerText = 'Kendryte K210 (64-bit RISC-V)';
+          document.getElementById('infoNodeId').innerText = selectedPackage.nodeId;
+        } else {
+          logTerminal(`ESP32 ROM Bootloader Sync (0x08) acknowledged!`);
+          document.getElementById('infoChip').innerText = 'ESP32-S3 (revision v0.9)';
+          document.getElementById('infoNodeId').innerText = selectedPackage.nodeId;
+        }
+        document.getElementById('infoChip').className = 'text-emerald-400 font-bold';
+        document.getElementById('infoNodeId').className = 'text-amber-400 font-bold';
+        logTerminal(`Silicon Handshake OK. Ready for flashing.`);
+      }, 400);
+    }
+
+    function startFlashingSim() {
+      const btn = document.getElementById('btnStartFlash');
+      btn.disabled = true;
+      btn.innerText = 'FLASHING IN PROGRESS...';
+      btn.className = 'w-full bg-slate-800 text-amber-500 font-black py-3.5 px-4 rounded-xl text-sm border border-amber-500/40';
+
+      logTerminal(`Starting native flash sequence at 921600 bps...`);
+      if (selectedPackage.chipType === 'k210') {
+        logTerminal(`Unpacking .kfpkg manifest: flash-list.json`);
+        logTerminal(`Writing K210 flash chunk 0x000000 (bootloader)...`);
+      } else {
+        logTerminal(`Erasing flash sector 0x1000 (bootloader.bin)...`);
+      }
+
+      let pct = 0;
+      const total = selectedPackage.size;
+      const interval = setInterval(() => {
+        pct += 10;
+        const written = Math.round((pct / 100) * total);
+        const speed = (55.4 + Math.random() * 5).toFixed(1);
+
+        document.getElementById('flashProgressBar').style.width = pct + '%';
+        document.getElementById('flashPercentText').innerText = pct + '%';
+        document.getElementById('flashStatusText').innerText = `Writing firmware... (${pct}%)`;
+        document.getElementById('flashSpeedText').innerText = `${written} / ${total} bytes (${speed} KB/s)`;
+        document.getElementById('flashFileText').innerText = pct < 40 ? 'bootloader.bin' : (pct < 70 ? 'partitions.bin' : 'app.bin');
+
+        if (pct === 40) logTerminal(`[0x1000] Block complete. MD5 verified OK.`);
+        if (pct === 70) logTerminal(`[0x8000] Partition table written. MD5 verified OK.`);
+        if (pct === 100) {
+          clearInterval(interval);
+          logTerminal(`[0x10000] Application binary written. Total ${total} bytes.`);
+          logTerminal(`>>> FLASH WRITE COMPLETE! Initializing verification...`);
+          document.getElementById('flashStatusText').innerText = 'Flashing Complete! Ready for verification.';
+          document.getElementById('flashStatusText').className = 'text-xs font-bold text-emerald-400';
+          btn.innerText = 'FLASHING FINISHED';
+          document.getElementById('btnProceedVerify').classList.remove('hidden');
+          runVerificationSim(true);
+        }
+      }, 180);
+    }
+
+    function runVerificationSim(shouldPass) {
+      document.getElementById('verifySpinner').classList.remove('hidden');
+      document.getElementById('verifyStateBanner').innerText = 'RESETTING MCU & QUERYING RUNTIME...';
+      document.getElementById('verifyStateBanner').className = 'text-xs font-black text-amber-400 tracking-wide';
+
+      logTerminal(`Verification: Releasing RTS/DTR to reboot into runtime mode...`);
+      logTerminal(`Verification: Listening at 115200 bps for boot banner...`);
+
+      setTimeout(() => {
+        document.getElementById('verifySpinner').classList.add('hidden');
+        logTerminal(`TX: CMD:GET_VERSION\\r\\n`);
+
+        if (shouldPass) {
+          const ver = selectedPackage.version;
+          const id = selectedPackage.nodeId;
+          document.getElementById('vExpectedVer').innerText = ver;
+          document.getElementById('vReportedVer').innerText = ver;
+          document.getElementById('vReportedVer').className = 'text-emerald-400 font-bold';
+          document.getElementById('vVerifiedId').innerText = id;
+          document.getElementById('vBootOutput').innerText = `PrakritiNetX Sensor Node booting... [OK]\nFirmware version: ${ver}\nNode ID: ${id}\nMesh radio listening on 433 MHz.`;
+          document.getElementById('verifyStateBanner').innerText = 'NODE VERIFIED SUCCESSFULLY [PASS]';
+          document.getElementById('verifyStateBanner').className = 'text-xs font-black text-emerald-400 tracking-wide';
+          document.getElementById('btnProceedGeotag').disabled = false;
+          document.getElementById('btnProceedGeotag').className = 'w-full bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold py-3.5 px-4 rounded-xl text-sm tracking-wide shadow-lg transition mt-4';
+          logTerminal(`RX: VERSION:${ver} NODE:${id} [VERIFIED]`);
+        } else {
+          document.getElementById('vExpectedVer').innerText = selectedPackage.version;
+          document.getElementById('vReportedVer').innerText = 'v0.9.1 (MISMATCH)';
+          document.getElementById('vReportedVer').className = 'text-rose-400 font-bold';
+          document.getElementById('vVerifiedId').innerText = 'UNKNOWN';
+          document.getElementById('vBootOutput').innerText = `PrakritiNetX Legacy Bootloader v0.9.1\nWarning: CRC mismatch or outdated firmware detected.`;
+          document.getElementById('verifyStateBanner').innerText = 'VERIFICATION FAILED: MISMATCH [FAIL]';
+          document.getElementById('verifyStateBanner').className = 'text-xs font-black text-rose-400 tracking-wide';
+          document.getElementById('btnProceedGeotag').disabled = true;
+          document.getElementById('btnProceedGeotag').className = 'w-full bg-slate-800 text-slate-500 font-extrabold py-3.5 px-4 rounded-xl text-sm tracking-wide transition mt-4';
+          logTerminal(`RX: MISMATCH! Expected ${selectedPackage.version} but board reported v0.9.1. DO NOT DEPLOY.`);
+        }
+      }, 800);
+    }
+
+    function acquireNewGps() {
+      logTerminal(`FusedLocationProviderClient: Requesting high accuracy GPS fix...`);
+      setTimeout(() => {
+        logTerminal(`GPS Fix acquired: 30.316496° N, 78.032188° E (±3.8m accuracy)`);
+        alert("GPS coordinates updated with live satellite fix!");
+      }, 400);
+    }
+
+    function confirmDeployment() {
+      const writeBoard = document.getElementById('toggleWriteBoard').checked;
+      const notes = document.getElementById('siteNotes').value;
+      const id = selectedPackage.nodeId;
+
+      logTerminal(`Confirming deployment location for node ${id}...`);
+      if (writeBoard) {
+        logTerminal(`TX to Board USB: CONFIG:LOC:30.316496,78.032188,1420.5,3.8`);
+        logTerminal(`RX from Board: OK CONFIG_SAVED [EEPROM PERSISTED]`);
+      }
+
+      logTerminal(`Saving to local Room database (QueuedLocationEntity)...`);
+      logTerminal(`Site offline check: Queueing WorkManager sync job with NetworkType.CONNECTED`);
+
+      document.getElementById('geotagResultBox').classList.remove('hidden');
+      document.getElementById('btnConfirmDeploy').disabled = true;
+      document.getElementById('btnConfirmDeploy').className = 'w-full bg-slate-800 text-slate-500 font-black py-3.5 px-4 rounded-xl text-sm';
+      document.getElementById('btnFinishCycle').classList.remove('hidden');
+
+      // Update badge
+      document.getElementById('queueBadge').classList.remove('hidden');
+    }
+
+    function saveSettings() {
+      const url = document.getElementById('settingUrl').value;
+      logTerminal(`Backend REST URL updated to: ${url}`);
+      alert(`Backend Base URL saved: ${url}`);
+    }
+
+    function syncAllRecords() {
+      logTerminal(`Manual sync triggered: Contacting backend /nodes/.../location`);
+      setTimeout(() => {
+        logTerminal(`Sync successful! 1 pending location pushed to cloud.`);
+        document.getElementById('queueBadge').classList.add('hidden');
+        alert("All queued offline records successfully synchronized with the backend cloud!");
+      }, 500);
+    }
+
+    function logTerminal(msg) {
+      const body = document.getElementById('terminalBody');
+      const time = new Date().toTimeString().split(' ')[0];
+      const div = document.createElement('div');
+      div.innerText = `[${time}] ${msg}`;
+      body.appendChild(div);
+      body.scrollTop = body.scrollHeight;
+    }
+
+    function clearTerminal() {
+      document.getElementById('terminalBody').innerHTML = '';
+      logTerminal('Terminal cleared.');
+    }
+  </script>
+</body>
+</html>

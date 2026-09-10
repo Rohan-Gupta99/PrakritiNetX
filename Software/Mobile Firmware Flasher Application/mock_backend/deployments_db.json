@@ -1,0 +1,15 @@
+[
+  {
+    "node_id": "ESP32_30AEA4070D64",
+    "latitude": 30.316496,
+    "longitude": 78.032188,
+    "altitude": 1420.5,
+    "accuracy": 3.8,
+    "timestamp": 1789031529148,
+    "firmware_version": "v1.4.0",
+    "chip_type": "esp32",
+    "written_to_board": true,
+    "technician_notes": "Alaknanda River Catchment - Bridge Pillar Node #3",
+    "registered_node_id": "ESP32_30AEA4070D64"
+  }
+]
