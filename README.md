@@ -27,7 +27,8 @@
 | Anishka Gupta | 2024UEC2562 |
 | Rohan Gupta | 2024UEC2565 |
 | Vansh Kumar | 2024UEC2519 |
-| Nishant | 2024UEC2516 |
+| Nishant Kumar | 2024UEC2516 |
+| Vivek Kumar | 2024UEC2509 |
 | Animesh | 2024UEE4152 |
 
 ---
