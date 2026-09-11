@@ -10,4 +10,6 @@
 
 ## Demo
 
-The demo video is currently being produced and will be linked here upon completion.
+🎬 [Watch Demo Video on Google Drive](https://drive.google.com/drive/folders/1vZj6SV4yedn8AnQawvWaI9Jvdcg6W1Xi?usp=sharing)
+
+> Ensure the link is set to "Anyone with the link can view" before submission.

@@ -27,7 +27,8 @@
 | Anishka Gupta | 2024UEC2562 |
 | Rohan Gupta | 2024UEC2565 |
 | Vansh Kumar | 2024UEC2519 |
-| Nishant | 2024UEC2516 |
+| Nishant Kumar | 2024UEC2516 |
+| Vivek Kumar | 2024UEC2509 |
 | Animesh | 2024UEE4152 |
 
 ---
@@ -53,6 +54,10 @@ There is no integrated, autonomous system that can predict flash floods, forest 
 2. **Per-Site Learned Normal (30-Day μ, σ)**: Each node's baseline adapts to seasonal monsoon transitions. Anomalies are quantified via standard-deviation departures (Z ≥ 3.0σ) relative to that specific site's own historical normal — eliminating false alarms.
 3. **Cross-Node Kinematic Wave Correlation**: When an upstream station flags an anomaly, the central predictive engine computes downstream arrival times (Δt = d/v) using precise field GNSS coordinates, delivering **hours of lead time** to civil defense authorities.
 4. **Transparent, Auditable Escalation**: All alerting decisions follow deterministic, explainable rules matching Central Water Commission (CWC) operational standards — no black-box failures during life-safety events.
+
+### Command Center Dashboard
+
+![Command Center Dashboard](assets/screenshots/dashboard_command_center.png)
 
 ```
                     UPSTREAM SENSING STATION                               DOWNSTREAM COMMUNITY
@@ -85,12 +90,14 @@ There is no integrated, autonomous system that can predict flash floods, forest 
 - **Forest Fire Detection** — Real-time MobileNet CNN smoke/fire binary classification on K210 KPU + IR flame wake trigger
 - **Landslide Precursor Monitoring** — Micro-seismic tremor filtering (ADXL355 accelerometer) + dual-axis tilt (SCA100T) for slope deformation
 - **WaterNet On-Device Vision** — Tiny water-segmentation CNN (90K params, 104 KB .kmodel) for river level, coverage, turbidity, and debris measurement
+- **Real-Time Command Center Dashboard** — Vite + React frontend with Python/FastAPI backend for live node monitoring, hazard simulation, and alert management
 - **Per-Site Adaptive Baselines** — 30-day rolling statistical normal per node eliminates false alarms during monsoon transitions
 - **Sub-GHz LoRa Mesh Network** — 433 MHz peer-to-peer mesh with ridge repeaters for zero-cellular mountain deployments
 - **FieldFlash Mobile Provisioner** — Native Android (Kotlin) app for USB-OTG firmware flashing, GNSS geotagging, and node registration in the field
+- **Custom PCB Design** — KiCad-designed sensor board with LoRaWAN, camera/SD, and environmental sensor subsystems
+- **3D Product Design** — FreeCAD-modeled solar-powered node pole housing (STL export for manufacturing)
 - **Industrial Power-Gating** — Dual power domain design (ESP32 always-on radio + K210 power-gated vision) for 10–14+ days overcast autonomy
 - **NDMA/CWC Compliant Alerting** — Deterministic escalation via SACHET/CAP/SMS to District Disaster Management Authorities
-- **Interactive UI Simulator** — Full-feature browser-based preview of the mobile provisioning workflow (no phone required)
 
 ---
 
@@ -103,8 +110,12 @@ There is no integrated, autonomous system that can predict flash floods, forest 
 | **Sensors** | Davis 7852 Rain Gauge, ADXL355 Seismic Accelerometer, SCA100T Tilt Sensor, OV5647 5MP Camera, YG1006 IR Flame Trigger |
 | **Communication** | 433 MHz Sub-GHz LoRa (SX1276/RFM95), Peer-to-Peer Mesh Topology |
 | **Machine Learning** | TensorFlow/Keras, TFLite, nncase v0.2 (.kmodel v4 for K210 KPU) |
+| **Dashboard Frontend** | React, TypeScript, Vite, Tailwind CSS |
+| **Dashboard Backend** | Python, FastAPI, SQLite, Physics Simulation Engine |
 | **Mobile App** | Android Native (Kotlin), USB-OTG Serial, Room DB, WorkManager, Retrofit |
 | **Backend/Cloud** | AWS API Gateway + Lambda + DynamoDB + S3 (or local Raspberry Pi gateway) |
+| **PCB Design** | KiCad (Schematics, PCB Layout) |
+| **3D Design** | FreeCAD (Node Pole Housing, STL Export) |
 | **Power System** | 12V LiFePO4 (15–20 Ah) + MPPT Solar Controller (10–20W Monocrystalline, IP65) |
 | **Compliance** | NDMA CAP, SACHET, CWC Standards |
 
@@ -188,18 +199,29 @@ There is no integrated, autonomous system that can predict flash floods, forest 
 ```
 PrakritiNetX/
 ├── README.md                                    # Master project documentation
+├── SUBMISSION_GUIDE.md                          # SIH 2026 submission checklist
 ├── LICENSE                                      # MIT Open Source License
+├── requirements.txt                             # Root-level dependencies
 ├── .gitignore
 │
 ├── Docs/
-│   └── Environmental Intelligence Network       # Complete technical reference (PDF)
-│       — Complete Technical Reference.pdf
+│   ├── Environmental Intelligence Network       # Complete technical reference (PDF)
+│   │   — Complete Technical Reference.pdf
+│   └── architecture.md                          # Detailed system architecture document
 │
 ├── Hardware/
-│   └── AI BOARD MAIN HOUSE/                     # Schematics, BOM, PCB layout
-│       ├── Advance Project 2.0.pdf              # Board design document
-│       ├── Maixduino_2832(Schematic)_v1.5.pdf   # Reference schematic
-│       └── maixduino_pins.png                   # Pin mapping reference
+│   ├── AI BOARD MAIN HOUSE/                     # Main board schematics & reference docs
+│   │   ├── Advance Project 2.0.pdf
+│   │   ├── Maixduino_2832(Schematic)_v1.5.pdf
+│   │   └── maixduino_pins.png
+│   ├── Sensor_board/                            # Custom PCB design (KiCad)
+│   │   ├── Sensor_board.kicad_sch               # Main sensor board schematic
+│   │   ├── Lorawan.kicad_sch                    # LoRaWAN sub-schematic
+│   │   ├── camere_sd.kicad_sch                  # Camera & SD card sub-schematic
+│   │   └── temp_humidity.kicad_sch              # Environmental sensor sub-schematic
+│   ├── PRODUCT_DESIGN/
+│   │   └── 3D_MODEL_NODE_POLE/                  # FreeCAD 3D model + STL export
+│   └── Lib/                                     # KiCad component symbol library
 │
 ├── Software/
 │   ├── ML_Model/                                # WaterNet — On-device river vision CNN
@@ -213,6 +235,20 @@ PrakritiNetX/
 │   │   ├── firmware_ref/maixpy_node.py          # On-board K210 firmware
 │   │   ├── datasets/                            # Training data directory
 │   │   └── requirements.txt
+│   │
+│   ├── Main_Dashboard/                          # Real-Time Command Center Dashboard
+│   │   ├── frontend/                            # React + TypeScript + Vite + Tailwind CSS
+│   │   │   ├── src/                             # Dashboard UI components & pages
+│   │   │   ├── package.json
+│   │   │   └── vite.config.ts
+│   │   └── backend/                             # Python FastAPI + SQLite
+│   │       ├── main.py                          # API server & WebSocket endpoints
+│   │       ├── physics_engine.py                # Kinematic wave & hazard simulation
+│   │       ├── simulator.py                     # Multi-hazard scenario simulator
+│   │       ├── database.py                      # SQLite data layer
+│   │       ├── models.py                        # Pydantic data models
+│   │       ├── packet_codec.py                  # LoRa binary packet encoder/decoder
+│   │       └── requirements.txt
 │   │
 │   └── Mobile Firmware Flasher Application/     # FieldFlash — Android Provisioner App
 │       ├── app/
@@ -228,41 +264,39 @@ PrakritiNetX/
 │       └── README.md                            # Detailed FieldFlash documentation
 │
 ├── submission/
-│   ├── PRESENTATION.md                          # Final SIH presentation link
-│   └── DEMO.md                                  # Demo video link
+│   ├── PRESENTATION.md                          # Final SIH presentation (Google Drive link)
+│   └── DEMO.md                                  # Demo video (Google Drive link)
 │
 └── assets/
     └── screenshots/                             # Project screenshots & prototype photos
-        └── README.md
+        ├── dashboard_command_center.png
+        ├── hardware_block_diagram.png.jpeg
+        ├── hardware_pinout.png
+        ├── power_architecture.png.jpeg
+        └── mobile_app_pngs/                     # FieldFlash Android app screenshots
 ```
 
 ---
 
 ## 8. Final Presentation
 
-The final SIH presentation is available in the repository:
+📎 [View Presentation on Google Drive](https://drive.google.com/drive/folders/1Dz8FVQ1AMcFOIODErVW3VQj4AWxJVNVZ?usp=sharing)
 
-See [submission/PRESENTATION.md](submission/PRESENTATION.md) for the presentation file or link.
-
-> If the PPT is too large for GitHub, a Google Drive/OneDrive accessible viewer link is provided in `submission/PRESENTATION.md`.
+See [submission/PRESENTATION.md](submission/PRESENTATION.md) for details.
 
 ---
 
 ## 9. Demo Video
 
-A demo video showcasing the complete PrakritiNetX system is available:
+🎬 [Watch Demo Video on Google Drive](https://drive.google.com/drive/folders/1vZj6SV4yedn8AnQawvWaI9Jvdcg6W1Xi?usp=sharing)
 
-See [submission/DEMO.md](submission/DEMO.md) for the YouTube/Google Drive demo link.
+See [submission/DEMO.md](submission/DEMO.md) for details.
 
 ---
 
 ## 10. Screenshots / Prototype Photos
 
-Hardware prototype photos, PCB layouts, field deployment images, and software UI screenshots are available in:
-
-📂 [assets/screenshots/](assets/screenshots/)
-
-See [assets/screenshots/README.md](assets/screenshots/README.md) for naming conventions and descriptions.
+All project screenshots, hardware prototype photos, and UI captures are available in [assets/screenshots/](assets/screenshots/).
 
 ---
 
@@ -312,6 +346,20 @@ python src/export_kmodel.py --weights runs/waternet_best.h5 --calib <calibration
 start "Software/Mobile Firmware Flasher Application/preview_ui.html"
 ```
 
+### Main Dashboard
+
+```bash
+# Backend:
+cd Software/Main_Dashboard/backend
+pip install -r requirements.txt
+python main.py
+
+# Frontend (in a new terminal):
+cd Software/Main_Dashboard/frontend
+npm install
+npm run dev
+```
+
 ### Local Base-Station REST Gateway
 
 ```bash
@@ -328,19 +376,23 @@ python mock_server.py
 
 ## 12. Run
 
-### Quick Start — Browser UI Preview
+### Quick Start — Command Center Dashboard
+
+```bash
+# Start backend (API + WebSocket + Simulator):
+cd Software/Main_Dashboard/backend
+python main.py
+
+# Start frontend (in a new terminal):
+cd Software/Main_Dashboard/frontend
+npm run dev
+```
+
+### Quick Start — FieldFlash UI Preview
 
 ```bash
 # No setup needed — open in any modern browser:
 start "Software/Mobile Firmware Flasher Application/preview_ui.html"
-```
-
-### Quick Start — Local Gateway Server
-
-```bash
-cd "Software/Mobile Firmware Flasher Application/mock_backend"
-python mock_server.py
-# Server runs on http://localhost:8080
 ```
 
 ### Deploying FieldFlash APK to Android Device
@@ -348,8 +400,6 @@ python mock_server.py
 ```bash
 adb install app/build/outputs/apk/debug/app-debug.apk
 ```
-
-> Replace these commands with your actual deployment and hardware provisioning workflow as needed.
 
 ---
 
@@ -372,5 +422,3 @@ PrakritiNetX is developed as an open disaster risk reduction platform under the 
 
 Architected in alignment with guidelines from the **National Disaster Management Authority (NDMA)** and the **Central Water Commission (CWC)**, Government of India.
 
-> [!IMPORTANT]
-> Before submission, make sure the repository is accessible to reviewers. Do not upload passwords, API keys, access tokens, `.env` files containing secrets, or other confidential credentials.

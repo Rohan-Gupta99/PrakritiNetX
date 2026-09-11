@@ -10,8 +10,6 @@
 
 ## Presentation
 
-The final presentation will be uploaded to this directory once finalized.
+📎 [View Presentation on Google Drive](https://drive.google.com/drive/folders/1Dz8FVQ1AMcFOIODErVW3VQj4AWxJVNVZ?usp=sharing)
 
-Filename format: `TeamName_SIH2026_Presentation.pptx`
-
-> If the file exceeds GitHub's size limit, a Google Drive / OneDrive viewer link will be provided here.
+> Ensure the link is set to "Anyone with the link can view" before submission.
