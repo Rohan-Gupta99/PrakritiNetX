@@ -192,6 +192,12 @@ There is no integrated, autonomous system that can predict flash floods, forest 
 └─────────────────────────┘     └─────────────────────────┘
 ```
 
+### Technical Approach
+
+The diagram below illustrates the complete end-to-end technical architecture — from the edge AI sensor nodes (Maixduino K210 + ESP32) through the LoRa mesh network, Raspberry Pi gateway hub, and cloud/local data pipeline, all the way to SMS/call civil defense alerting and mobile firmware provisioning.
+
+![Technical Approach](assets/screenshots/Technical%20Approach.png)
+
 ---
 
 ## 7. Repository Structure
@@ -207,6 +213,8 @@ PrakritiNetX/
 ├── Docs/
 │   ├── Environmental Intelligence Network       # Complete technical reference (PDF)
 │   │   — Complete Technical Reference.pdf
+│   ├── SIH26178_PrakritiNetX_Disaster_          # SIH Presentation (PDF)
+│   │   Management.pdf
 │   └── architecture.md                          # Detailed system architecture document
 │
 ├── Hardware/
@@ -269,6 +277,7 @@ PrakritiNetX/
 │
 └── assets/
     └── screenshots/                             # Project screenshots & prototype photos
+        ├── Technical Approach.png               # End-to-end technical architecture diagram
         ├── dashboard_command_center.png
         ├── hardware_block_diagram.png.jpeg
         ├── hardware_pinout.png
