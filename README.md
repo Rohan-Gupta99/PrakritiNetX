@@ -373,5 +373,3 @@ PrakritiNetX is developed as an open disaster risk reduction platform under the 
 
 Architected in alignment with guidelines from the **National Disaster Management Authority (NDMA)** and the **Central Water Commission (CWC)**, Government of India.
 
-> [!IMPORTANT]
-> Before submission, make sure the repository is accessible to reviewers. Do not upload passwords, API keys, access tokens, `.env` files containing secrets, or other confidential credentials.
